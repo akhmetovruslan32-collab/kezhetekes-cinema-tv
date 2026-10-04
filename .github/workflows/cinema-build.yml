@@ -23,18 +23,16 @@ jobs:
           java-version: 21
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
-      - name: Verify upstream build
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
       - name: Apply CINEMA sources
         run: |
           unzip -o "$RUNNER_TEMP/cinema-overlay.zip"
           rm -rf app/build/outputs/apk
       - name: Build CINEMA APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
-      - name: Upload installable test APK
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Upload unsigned release APK
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
-          name: kezhetekes-cinema-tv-test-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: kezhetekes-cinema-tv-release-unsigned
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 14
