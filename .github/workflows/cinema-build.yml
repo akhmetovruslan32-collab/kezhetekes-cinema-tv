@@ -1,0 +1,40 @@
+name: CINEMA APK
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout build inputs
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
+      - name: Preserve CINEMA changes
+        run: cp cinema-overlay.zip "$RUNNER_TEMP/cinema-overlay.zip"
+      - name: Use stable Jellyfin 0.19.10
+        run: git checkout --detach v0.19.10
+      - name: Setup Java 21
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
+      - name: Verify upstream build
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Apply CINEMA sources
+        run: |
+          unzip -o "$RUNNER_TEMP/cinema-overlay.zip"
+          rm -rf app/build/outputs/apk
+      - name: Build CINEMA APK
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Upload installable test APK
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: kezhetekes-cinema-tv-test-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
